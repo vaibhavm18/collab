@@ -914,6 +914,22 @@ export function RoomPageClient({ roomId }: { roomId: string }) {
   }, [roomId]);
 
   useEffect(() => {
+    const description = document.querySelector('meta[name="description"]');
+
+    if (!room?.name) {
+      document.title = "CollabBoard";
+      description?.setAttribute(
+        "content",
+        "A collaborative workspace for teams to shape ideas and move forward together.",
+      );
+      return;
+    }
+
+    document.title = `${room.name} | CollabBoard`;
+    description?.setAttribute("content", `Collaborate with your team in ${room.name} on CollabBoard.`);
+  }, [room?.name]);
+
+  useEffect(() => {
     if (!profile) {
       return;
     }

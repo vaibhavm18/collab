@@ -34,7 +34,7 @@ export default async function Home({
   const redirectTo = getRoomReturnPath(returnTo);
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="relative flex min-h-screen flex-col overflow-x-clip bg-background text-foreground">
       <HomeNav redirectTo={redirectTo} />
       <HeroSection />
       <RoomList />

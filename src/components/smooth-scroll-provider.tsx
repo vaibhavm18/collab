@@ -12,7 +12,9 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     <ReactLenis
       root
       options={{
+        allowNestedScroll: true,
         smoothWheel: true,
+        stopInertiaOnNavigate: true,
         lerp: 0.1,
         wheelMultiplier: 0.9,
         anchors: true,
