@@ -41,18 +41,8 @@ function RoomCard({
 
   return (
     <Card className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card/80 py-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/35 hover:shadow-xl hover:shadow-primary/8">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-primary/70 to-secondary opacity-70 transition-opacity group-hover:opacity-100" />
       <CardContent className="flex min-h-56 flex-col p-5 sm:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-primary/12 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-            <HugeiconsIcon icon={Door01Icon} size={21} strokeWidth={1.8} />
-          </div>
-          <Badge className="bg-secondary/12 text-secondary" variant="ghost">
-            Open room
-          </Badge>
-        </div>
-
-        <div className="mt-7 min-w-0">
+        <div className=" min-w-0">
           <h3 className="truncate font-heading text-lg font-semibold tracking-[-0.03em] text-card-foreground">
             {room.name}
           </h3>

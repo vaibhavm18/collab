@@ -25,7 +25,13 @@ export function HomeNav({ redirectTo }: { redirectTo?: string }) {
           </span>
         </a>
 
-        <div className="flex items-center gap-1 rounded-xl border border-border/70 bg-muted/35 p-1">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <a
+            className="hidden rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground sm:inline-flex"
+            href="#rooms"
+          >
+            Browse rooms
+          </a>
           <AuthActions redirectTo={redirectTo} />
         </div>
       </div>

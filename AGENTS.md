@@ -37,7 +37,7 @@ Use foreground tokens for readable content paired with their surface token, for 
 <div className="bg-card text-card-foreground border-border" />
 ```
 
-When a new theme role is needed, add the variable to both `:root` and `.dark`, expose it in the `@theme inline` block, and use its generated utility class. Keep spacing, radius, and typography in Tailwind utilities. Preserve responsive and dark-mode behavior; use `dark:` only when a semantic token cannot express the requirement.
+When a new theme role is needed, add the variable to both `:root` and `.dark`, expose it in the `@theme inline` block, and use its generated utility class. Keep spacing, radius, and typography in Tailwind utilities. Preserve responsive. make clean and simple and professional ui.
 
 ## Code Style
 

@@ -7,6 +7,8 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { CreateRoomDialog } from "@/components/rooms/create-room-dialog";
 import { createClient } from "@/lib/supabase/clients/client";
 
+const actionClassName = "h-8 rounded-lg px-3 text-xs font-semibold";
+
 export function AuthActions({ redirectTo }: { redirectTo?: string }) {
   const [isSignedIn, setIsSignedIn] = useState(false);
 
@@ -26,23 +28,24 @@ export function AuthActions({ redirectTo }: { redirectTo?: string }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  return isSignedIn ? (
-    <>
-      <CreateRoomDialog className="h-8 rounded-lg px-3 text-xs font-semibold" />
-      <LogoutButton
-        className="h-8 rounded-lg px-3 text-xs font-semibold"
-        variant="ghost"
-      />
-    </>
-  ) : (
-    <LoginDialogButton
-      autoOpen={Boolean(redirectTo)}
-      className="h-8 rounded-lg px-3 text-xs font-semibold"
-      initialMode={redirectTo ? "register" : "login"}
-      redirectTo={redirectTo}
-      variant="default"
-    >
-      Login
-    </LoginDialogButton>
+  return (
+    <div className="flex items-center gap-1.5">
+      {isSignedIn ? (
+        <>
+          <CreateRoomDialog className={actionClassName} />
+          <LogoutButton className={actionClassName} variant="default" />
+        </>
+      ) : (
+        <LoginDialogButton
+          autoOpen={Boolean(redirectTo)}
+          className={actionClassName}
+          initialMode={redirectTo ? "register" : "login"}
+          redirectTo={redirectTo}
+          variant="default"
+        >
+          Log in
+        </LoginDialogButton>
+      )}
+    </div>
   );
 }
