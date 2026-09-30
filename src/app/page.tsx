@@ -1,7 +1,11 @@
-
+import { Faq } from "@/components/home/faq";
 import { HeroSection } from "@/components/home/hero-section";
 import { HomeNav } from "@/components/home/home-nav";
+import { HowItWorks } from "@/components/home/how-it-works";
+import { SiteFooter } from "@/components/home/site-footer";
+import { UseCases } from "@/components/home/use-cases";
 import { RoomList } from "@/components/rooms/room-list";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 function getRoomReturnPath(value: string | string[] | undefined) {
   const candidate = Array.isArray(value) ? value[0] : value;
@@ -34,27 +38,15 @@ export default async function Home({
   const redirectTo = getRoomReturnPath(returnTo);
 
   return (
-    <main className="relative flex min-h-screen flex-col overflow-x-clip bg-background text-foreground">
+    <main>
       <HomeNav redirectTo={redirectTo} />
       <HeroSection />
+      <HowItWorks />
+      <UseCases />
       <RoomList />
-      <footer className="relative shrink-0 overflow-hidden border-t border-border/60 bg-card/35 px-5 pt-8 pb-10 text-muted-foreground sm:px-6 lg:px-10">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
-        <div className="mx-auto flex min-h-24 w-full max-w-7xl items-center justify-between gap-6 py-8">
-          <div className="flex items-center gap-3">
-            <span className="relative flex size-8 items-center justify-center overflow-hidden rounded-[0.7rem] bg-primary text-sm font-bold text-primary-foreground shadow-sm shadow-primary/25">
-              <span className="absolute -right-1 -bottom-1 size-4 rounded-full border-2 border-primary-foreground/40" />
-              <span className="relative">C</span>
-            </span>
-            <span className="font-heading text-sm font-semibold tracking-[-0.02em] text-foreground">
-              CollabBoard
-            </span>
-          </div>
-          <p className="text-right text-[0.65rem] tracking-[0.12em] uppercase">
-            © {new Date().getFullYear()} CollabBoard
-          </p>
-        </div>
-      </footer>
+      <Faq />
+      <SiteFooter />
+      <ThemeToggle className="fixed right-[max(1rem,env(safe-area-inset-right))] bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 size-11 rounded-full border border-border bg-card text-card-foreground shadow-md hover:bg-muted sm:right-6 sm:bottom-6" />
     </main>
   );
 }

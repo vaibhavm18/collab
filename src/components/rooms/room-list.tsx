@@ -1,22 +1,25 @@
 "use client";
 
 import {
-  ArrowRight01Icon,
-  Door01Icon,
-  LockPasswordIcon,
+  ArrowUpRight01Icon,
+  Cancel01Icon,
+  Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import type * as React from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CreateRoomDialog } from "@/components/rooms/create-room-dialog";
-import { Badge } from "@/components/ui/badge";
+import { SectionEyebrow } from "@/components/section-eyebrow";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/clients/client";
 import { getRooms, joinRoom } from "@/lib/supabase/queries/rooms";
 import type { Room } from "@/lib/supabase/types";
+import { cn, focusRing } from "@/lib/utils";
+
+const INITIAL_VISIBLE = 6;
 
 function formatRoomDate(value: string) {
   return new Intl.DateTimeFormat("en", {
@@ -26,72 +29,117 @@ function formatRoomDate(value: string) {
   }).format(new Date(value));
 }
 
-function RoomCard({
+function formatIndex(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function RoomRow({
   room,
-  isSignedIn,
-  joiningRoomId,
+  index,
+  isJoining,
+  isDisabled,
   onJoin,
 }: {
   room: Room;
-  isSignedIn: boolean;
-  joiningRoomId: string | null;
+  index: number;
+  isJoining: boolean;
+  isDisabled: boolean;
   onJoin: (roomId: string) => void;
 }) {
-  const isJoining = joiningRoomId === room.id;
-
   return (
-    <Card className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card/80 py-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/35 hover:shadow-xl hover:shadow-primary/8">
-      <CardContent className="flex min-h-56 flex-col p-5 sm:p-6">
-        <div className=" min-w-0">
-          <h3 className="truncate font-heading text-lg font-semibold tracking-[-0.03em] text-card-foreground">
-            {room.name}
-          </h3>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">
-            Created {formatRoomDate(room.created_at)}
-          </p>
-        </div>
+    <li>
+      <button
+        aria-busy={isJoining}
+        className={cn(
+          "group grid w-full cursor-pointer grid-cols-[2rem_1fr_auto] items-center gap-x-4 py-5 text-left disabled:cursor-not-allowed disabled:opacity-50 sm:grid-cols-[3rem_1fr_auto_auto] sm:gap-x-8 sm:py-6",
+          focusRing,
+        )}
+        disabled={isDisabled}
+        onClick={() => onJoin(room.id)}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          className="font-heading text-xl leading-none text-muted-foreground/60 italic transition-colors duration-200 group-hover:text-foreground"
+        >
+          {formatIndex(index)}
+        </span>
 
-        <div className="mt-auto flex items-center justify-between gap-3 border-t border-border/70 pt-5">
-          <span className="text-[0.65rem] tracking-[0.16em] text-muted-foreground uppercase">
-            Shared workspace
+        <span className="flex min-w-0 items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="size-2.5 shrink-0 scale-0 rounded-full bg-chart-2 opacity-0 transition-[opacity,scale] duration-200 group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100"
+          />
+          <span className="-ml-5.5 truncate text-lg font-medium tracking-tight text-foreground transition-[margin] duration-200 ease-out group-hover:ml-0 group-focus-visible:ml-0 sm:text-xl">
+            {room.name}
           </span>
-          <Button
-            className="h-9 rounded-lg px-3 text-xs"
-            disabled={!isSignedIn || isJoining}
-            onClick={() => onJoin(room.id)}
-            variant="outline"
-          >
-            {isJoining ? "Joining…" : "Join room"}
-            {!isJoining ? (
-              <HugeiconsIcon
-                icon={ArrowRight01Icon}
-                size={15}
-                strokeWidth={2}
-              />
-            ) : null}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </span>
+
+        <span className="col-start-2 mt-1 text-xs tracking-wide text-muted-foreground uppercase sm:col-start-auto sm:mt-0">
+          {isJoining ? (
+            <span aria-live="polite">Joining…</span>
+          ) : (
+            <time dateTime={room.created_at}>
+              {formatRoomDate(room.created_at)}
+            </time>
+          )}
+        </span>
+
+        <span
+          aria-hidden="true"
+          className="col-start-3 row-span-2 row-start-1 flex size-11 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors duration-200 group-hover:border-foreground group-hover:bg-foreground group-hover:text-background sm:col-start-auto sm:row-span-1"
+        >
+          <HugeiconsIcon icon={ArrowUpRight01Icon} size={18} strokeWidth={1.8} />
+        </span>
+      </button>
+    </li>
   );
 }
 
 function RoomSkeleton() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {["one", "two", "three"].map((item) => (
-        <Card className="rounded-2xl border-border/70 py-0" key={item}>
-          <CardContent className="min-h-56 p-5 sm:p-6">
-            <Skeleton className="size-11 rounded-xl" />
-            <Skeleton className="mt-8 h-5 w-2/3" />
-            <Skeleton className="mt-3 h-3 w-1/3" />
-            <div className="mt-11 flex justify-between border-t border-border/70 pt-5">
-              <Skeleton className="h-3 w-28" />
-              <Skeleton className="h-9 w-24 rounded-lg" />
-            </div>
-          </CardContent>
-        </Card>
+    <ul
+      aria-busy="true"
+      aria-label="Loading rooms"
+      className="divide-y divide-border border-y border-border"
+    >
+      {["one", "two", "three", "four"].map((item) => (
+        <li
+          className="flex items-center gap-4 py-5 sm:gap-8 sm:py-6"
+          key={item}
+        >
+          <Skeleton className="h-4 w-6 sm:w-8" />
+          <Skeleton className="h-6 flex-1 sm:h-7 sm:max-w-md" />
+          <Skeleton className="size-11 rounded-full" />
+        </li>
       ))}
+    </ul>
+  );
+}
+
+function RoomMessage({
+  title,
+  description,
+  isAlert = false,
+  children,
+}: {
+  title: string;
+  description: string;
+  isAlert?: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="border-y border-border py-16 sm:py-20">
+      <h3 className="text-xl font-medium tracking-tight text-foreground sm:text-2xl">
+        {title}
+      </h3>
+      <p
+        className="mt-4 max-w-md text-base leading-7 text-muted-foreground"
+        role={isAlert ? "alert" : undefined}
+      >
+        {description}
+      </p>
+      {children ? <div className="mt-8">{children}</div> : null}
     </div>
   );
 }
@@ -101,8 +149,11 @@ export function RoomList() {
   const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [joiningRoomId, setJoiningRoomId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [showAll, setShowAll] = useState(false);
 
   const loadRooms = useCallback(async () => {
     setIsLoading(true);
@@ -148,6 +199,8 @@ export function RoomList() {
       } else {
         setRooms([]);
         setError(null);
+        setJoinError(null);
+        setQuery("");
         setIsLoading(false);
       }
     });
@@ -158,16 +211,29 @@ export function RoomList() {
     };
   }, [loadRooms]);
 
+  const filteredRooms = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) {
+      return rooms;
+    }
+    return rooms.filter((room) => room.name.toLowerCase().includes(normalized));
+  }, [rooms, query]);
+
+  const visibleRooms =
+    showAll || query ? filteredRooms : filteredRooms.slice(0, INITIAL_VISIBLE);
+  const hiddenCount = filteredRooms.length - visibleRooms.length;
+
   async function handleJoin(roomId: string) {
-    if (!isSignedIn) {
+    if (!isSignedIn || joiningRoomId) {
       return;
     }
 
+    setJoinError(null);
     setJoiningRoomId(roomId);
     const result = await joinRoom(roomId);
 
     if (result.error) {
-      setError("We couldn't join that room. Please try again.");
+      setJoinError("We couldn't join that room. Please try again.");
       setJoiningRoomId(null);
       return;
     }
@@ -175,99 +241,183 @@ export function RoomList() {
     router.push(`/room/${roomId}`);
   }
 
+  const isReady = isSignedIn && !isLoading && !error;
+  const hasRooms = rooms.length > 0;
+
   return (
     <section
-      className="relative overflow-hidden border-t border-border/60 bg-muted/15 px-5 py-20 text-foreground sm:px-6 lg:px-10 lg:py-28"
+      aria-labelledby="rooms-heading"
+      className="scroll-mt-20 border-t border-border"
       id="rooms"
     >
-      <div className="pointer-events-none absolute top-0 left-1/2 -z-0 size-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/6 blur-3xl" />
-      <div className="relative z-10 mx-auto w-full max-w-7xl">
-        <div className="mb-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-          <div className="max-w-xl">
-            <p className="mb-4 flex items-center gap-3 text-xs font-semibold tracking-[0.22em] text-primary uppercase">
-              <span className="h-px w-8 bg-primary" />
-              Room directory
-            </p>
-            <h2 className="font-heading text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+      <div className="mx-auto w-full max-w-6xl px-6 py-24 sm:px-10 sm:py-32">
+        <div className="grid gap-10 md:grid-cols-12 md:items-end md:gap-16">
+          <div className="md:col-span-7">
+            <SectionEyebrow>Room directory</SectionEyebrow>
+            <h2
+              className="mt-4 max-w-md font-heading text-4xl leading-[1.05] tracking-tight text-foreground sm:text-5xl"
+              id="rooms-heading"
+            >
               Find your next shared space.
             </h2>
-            <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">
-              Browse every room in the workspace and join the conversation
-              that matters next.
+            <p className="mt-6 max-w-sm text-base leading-7 text-muted-foreground">
+              Browse every room in the workspace and join the conversation that
+              matters next.
             </p>
           </div>
-          {isSignedIn ? (
-            <Badge className="h-7 rounded-full px-3" variant="outline">
-              {rooms.length} {rooms.length === 1 ? "room" : "rooms"}
-            </Badge>
+
+          {isReady && hasRooms ? (
+            <div className="flex items-end justify-between gap-6 md:col-span-5 md:flex-col md:items-end">
+              <p className="leading-none text-foreground">
+                <span className="font-heading text-4xl tracking-tight sm:text-5xl">
+                  {formatIndex(rooms.length)}
+                </span>
+                <span className="ml-3 text-sm tracking-wide text-muted-foreground uppercase">
+                  {rooms.length === 1 ? "room" : "rooms"}
+                </span>
+              </p>
+              <CreateRoomDialog
+                className="h-11 rounded-full px-5 text-sm"
+                variant="outline"
+              >
+                New room
+              </CreateRoomDialog>
+            </div>
           ) : null}
         </div>
 
-        {isSignedIn === null ? <RoomSkeleton /> : null}
-
-        {isSignedIn === false ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 px-6 py-14 text-center">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+        <div className="mt-16 sm:mt-20">
+          {isReady && hasRooms ? (
+            <div className="mb-2 flex items-center gap-3 border-b border-border pb-3 transition-colors focus-within:border-foreground">
               <HugeiconsIcon
-                icon={LockPasswordIcon}
-                size={21}
+                aria-hidden="true"
+                className="shrink-0 text-muted-foreground"
+                icon={Search01Icon}
+                size={18}
                 strokeWidth={1.8}
               />
-            </div>
-            <h3 className="mt-5 font-heading text-lg font-semibold tracking-[-0.03em]">
-              Sign in to browse rooms
-            </h3>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-              Your room directory is available once you are signed in. Join
-              room actions stay locked until then.
-            </p>
-          </div>
-        ) : null}
-
-        {isSignedIn && !isLoading && error ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-destructive/20 bg-destructive/8 px-6 py-12 text-center">
-            <p className="text-sm text-destructive">{error}</p>
-            <Button
-              className="mt-5 rounded-lg"
-              onClick={() => void loadRooms()}
-              variant="outline"
-            >
-              Try again
-            </Button>
-          </div>
-        ) : null}
-
-        {isSignedIn && !isLoading && !error && rooms.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 px-6 py-14 text-center">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-primary/12 text-primary">
-              <HugeiconsIcon icon={Door01Icon} size={21} strokeWidth={1.8} />
-            </div>
-            <h3 className="mt-5 font-heading text-lg font-semibold tracking-[-0.03em]">
-              No rooms yet
-            </h3>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-              Start a room for your next idea, then invite your team to shape
-              it together.
-            </p>
-            <CreateRoomDialog className="mt-6 h-10 rounded-lg px-4">
-              Create your first room
-            </CreateRoomDialog>
-          </div>
-        ) : null}
-
-        {isSignedIn && !isLoading && !error && rooms.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {rooms.map((room) => (
-              <RoomCard
-                isSignedIn={isSignedIn}
-                joiningRoomId={joiningRoomId}
-                key={room.id}
-                onJoin={handleJoin}
-                room={room}
+              <label className="sr-only" htmlFor="room-search">
+                Search rooms
+              </label>
+              <input
+                className="h-11 min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground sm:text-lg [&::-webkit-search-cancel-button]:hidden"
+                id="room-search"
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search the directory"
+                type="search"
+                value={query}
               />
-            ))}
-          </div>
-        ) : null}
+              {query ? (
+                <>
+                  <span
+                    aria-live="polite"
+                    className="hidden text-xs tracking-wide text-muted-foreground uppercase sm:inline"
+                  >
+                    {filteredRooms.length} of {rooms.length}
+                  </span>
+                  <Button
+                    aria-label="Clear search"
+                    className="size-11 rounded-full"
+                    onClick={() => setQuery("")}
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <HugeiconsIcon icon={Cancel01Icon} strokeWidth={1.8} />
+                  </Button>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+
+          {joinError ? (
+            <p
+              className="mb-6 text-sm text-destructive"
+              role="alert"
+            >
+              {joinError}
+            </p>
+          ) : null}
+
+          {isSignedIn === null || (isSignedIn && isLoading) ? (
+            <RoomSkeleton />
+          ) : null}
+
+          {isSignedIn === false ? (
+            <RoomMessage
+              description="The room directory opens once you are signed in. Use the sign in button above to get started."
+              title="Sign in to see every room."
+            />
+          ) : null}
+
+          {isSignedIn && !isLoading && error ? (
+            <RoomMessage
+              description={error}
+              isAlert
+              title="The directory didn't load."
+            >
+              <Button
+                className="h-11 rounded-full px-5 text-sm"
+                onClick={() => void loadRooms()}
+                variant="outline"
+              >
+                Try again
+              </Button>
+            </RoomMessage>
+          ) : null}
+
+          {isReady && !hasRooms ? (
+            <RoomMessage
+              description="Start a room for your next idea, then invite your team to shape it together."
+              title="No rooms yet. Start the first one."
+            >
+              <CreateRoomDialog className="h-11 rounded-full px-5 text-sm">
+                Create your first room
+              </CreateRoomDialog>
+            </RoomMessage>
+          ) : null}
+
+          {isReady && hasRooms && filteredRooms.length === 0 ? (
+            <RoomMessage
+              description={`No room names match "${query.trim()}". Try a different search.`}
+              title="Nothing by that name."
+            >
+              <Button
+                className="h-11 rounded-full px-5 text-sm"
+                onClick={() => setQuery("")}
+                variant="outline"
+              >
+                Clear search
+              </Button>
+            </RoomMessage>
+          ) : null}
+
+          {isReady && visibleRooms.length > 0 ? (
+            <ul className="divide-y divide-border border-b border-border">
+              {visibleRooms.map((room, index) => (
+                <RoomRow
+                  index={index + 1}
+                  isDisabled={joiningRoomId !== null}
+                  isJoining={joiningRoomId === room.id}
+                  key={room.id}
+                  onJoin={handleJoin}
+                  room={room}
+                />
+              ))}
+            </ul>
+          ) : null}
+
+          {isReady && (hiddenCount > 0 || (showAll && !query && rooms.length > INITIAL_VISIBLE)) ? (
+            <div className="mt-8 flex justify-center">
+              <Button
+                className="h-11 rounded-full px-5 text-sm"
+                onClick={() => setShowAll((value) => !value)}
+                variant="ghost"
+              >
+                {showAll ? "Show fewer" : `Show all ${filteredRooms.length} rooms`}
+              </Button>
+            </div>
+          ) : null}
+        </div>
       </div>
     </section>
   );
